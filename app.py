@@ -194,7 +194,7 @@ with right:
         st.dataframe(
             heat.style
                 .format({"avg_minutes": "{:.0f}"})
-                .background_gradient(cmap="PiYG_r", vmin=0, vmax=200), #
+                .background_gradient(cmap="PiYG_r"), #
             use_container_width=True
         )
 
