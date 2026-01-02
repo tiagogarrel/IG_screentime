@@ -190,10 +190,11 @@ with right:
         st.subheader("🗓️ Weekday heatmap")
         heat = weekday_heatmap_data(daily)
 
+        
         st.dataframe(
             heat.style
                 .format({"avg_minutes": "{:.0f}"})
-                .background_gradient(cmap="BrBG_r"), #, vmin=0, vmax=200
+                .background_gradient(cmap="PiYG_r", vmin=0, vmax=200), #
             use_container_width=True
         )
 
