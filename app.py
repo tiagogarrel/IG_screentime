@@ -109,7 +109,7 @@ with left:
     st.subheader("➕ Add / update a day")
 
     day = st.date_input("Date", value=date.today())
-    minutes = st.slider("Screen time minutes", 0, 600, 180, 5)
+    minutes = st.slider("Screen time minutes", 0, 240, 180, 5)
     #minutes = st.number_input("Screen time minutes", min_value=0, max_value=2000, value=0, step=5)
 
     if st.button("Save day", type="primary"):
@@ -126,20 +126,23 @@ with left:
 
     min_date = date.today() - timedelta(days=30)
     max_date = date.today()
-    
+
+    if "date_range" not in st.session_state:
+        st.session_state["date_range"] = (date.today() - timedelta(days=7), date.today())
+
     date_range = st.date_input(
         "Select range",
-        value=(min_date, max_date),
+        value=st.session_state["date_range"],
         min_value=min_date,
         max_value=max_date,
+        key="date_range",
     )
 
-    if isinstance(date_range, tuple) and len(date_range) == 2:
-        start, end = date_range
-    else:
-        st.info("Select an end date to complete the range")
+    if not (isinstance(date_range, tuple) and len(date_range) == 2):
         st.stop()
-        
+
+    start, end = date_range
+            
     st.divider()
     st.subheader("🎯 Goal")
     goal = st.number_input("Daily goal (minutes)", min_value=1, max_value=2000, value=15, step=5)
@@ -192,7 +195,7 @@ with right:
         st.dataframe(
             heat.style
                 .format({"avg_minutes": "{:.0f}"})
-                .background_gradient(cmap="BrBG_r", vmin=0, vmax=200),
+                .background_gradient(cmap="BrBG_r"), #, vmin=0, vmax=200
             use_container_width=True
         )
 
@@ -204,7 +207,7 @@ with right:
         display["minutes"] = display["minutes"].astype("Int64")
 
         def highlight_missing(row):
-            return ["background-color: #3a2f00" if row["missing"] else "" for _ in row]
+            return ["background-color: #2a2a2a" if row["missing"] else "" for _ in row]
 
         st.dataframe(
             display[["date", "minutes", "missing"]]
