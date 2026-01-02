@@ -79,7 +79,7 @@ if not SHEET_ID:
 gc = get_gspread_client()
 df = load_data(gc)
 
-left, right = st.columns([1, 2], gap="large")
+left, right = st.columns([1, 2], gap="large") # a
 
 with left:
     st.subheader("➕ Cargar / corregir un día")
