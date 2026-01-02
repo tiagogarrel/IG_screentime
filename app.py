@@ -124,9 +124,9 @@ with left:
         st.info("No data yet.")
         st.stop()
 
-    min_date = date.today()
-    max_date = date.today() - timedelta(days=7)
-
+    min_date = date.today() - timedelta(days=30)
+    max_date = date.today()
+    
     date_range = st.date_input(
         "Select range",
         value=(min_date, max_date),
@@ -144,6 +144,7 @@ with left:
     st.subheader("🎯 Goal")
     goal = st.number_input("Daily goal (minutes)", min_value=1, max_value=2000, value=15, step=5)
     streak_threshold = st.number_input("Streak threshold (minutes)", min_value=1, max_value=2000, value=15, step=5)
+
 
 
 with right:
