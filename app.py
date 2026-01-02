@@ -165,3 +165,50 @@ with right:
     missing_days = int(daily["missing"].sum())
 
     # Days above/below goal (only where minutes exist)
+    above = int((available["minutes"] > goal).sum()) if not available.empty else 0
+    below = int((available["minutes"] <= goal).sum()) if not available.empty else 0
+
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Avg (min/day)", f"{avg:.1f}")
+    c2.metric("Days ≤ goal", f"{below}")
+    c3.metric("Days > goal", f"{above}")
+    c4.metric("Missing days", f"{missing_days}")
+
+    # Streak
+    streak = current_streak_under_threshold(daily, int(streak_threshold))
+    st.info(f"Current streak under {streak_threshold} min: **{streak} day(s)**")
+
+    st.write("")
+    # Line chart: fill missing as 0 for charting, but keep missing flag for table
+    chart_series = daily.set_index("date")["minutes"].fillna(0)
+    st.line_chart(chart_series)
+
+    st.divider()
+
+    # Heatmap (weekday)
+    st.subheader("🗓️ Weekday heatmap (average minutes)")
+    heat = weekday_heatmap_data(daily)
+
+    # Streamlit doesn't have native heatmap; simplest is a styled dataframe
+    # Values shown + background gradient.
+    st.dataframe(
+        heat.style.format({"avg_minutes": "{:.0f}"})
+            .background_gradient(axis=0),
+        use_container_width=True
+    )
+
+    st.divider()
+    st.subheader("🗂️ Data (missing days highlighted)")
+
+    display = daily.copy()
+    display["date"] = pd.to_datetime(display["date"]).dt.strftime("%Y-%m-%d")
+    display["minutes"] = display["minutes"].astype("Int64")
+
+    def highlight_missing(row):
+        return ["background-color: #ffe8e8" if row["missing"] else "" for _ in row]
+
+    st.dataframe(
+        display[["date", "minutes", "missing"]]
+            .style.apply(highlight_missing, axis=1),
+        use_container_width=True
+    )
