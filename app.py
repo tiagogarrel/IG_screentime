@@ -128,21 +128,20 @@ with left:
     max_date = date.today()
 
     if "date_range" not in st.session_state:
-        st.session_state["date_range"] = (date.today() - timedelta(days=7), date.today())
+        st.session_state.date_range = (
+            date.today() - timedelta(days=7),
+            date.today()
+        )
 
     date_range = st.date_input(
         "Select range",
-        value=st.session_state["date_range"],
         min_value=min_date,
         max_value=max_date,
         key="date_range",
     )
 
-    if not (isinstance(date_range, tuple) and len(date_range) == 2):
-        st.stop()
-
     start, end = date_range
-            
+                
     st.divider()
     st.subheader("🎯 Goal")
     goal = st.number_input("Daily goal (minutes)", min_value=1, max_value=2000, value=15, step=5)
