@@ -32,7 +32,6 @@ def get_gspread_client() -> gspread.Client:
     creds = Credentials.from_service_account_info(creds_info, scopes=SCOPES)
     return gspread.authorize(creds)
 
-
 # ----------------------------
 # Helpers (analytics)
 # ----------------------------
@@ -108,20 +107,11 @@ left, right = st.columns([1, 2], gap="large")
 with left:
     st.subheader("➕ Add / update a day")
 
-    # One-click "Today = X"
-    st.caption("Quick add")
-    quick_minutes = st.number_input("Today minutes", min_value=0, max_value=2000, value=0, step=5, key="quick_today")
-    if st.button("Save today (one-click)", type="primary"):
-        upsert_day(gc, SHEET_ID, WORKSHEET_NAME, date.today(), int(quick_minutes), source="one_click")
-        st.success("Saved ✅")
-        df = load_data(gc, SHEET_ID, WORKSHEET_NAME)
-
-    st.divider()
-
     day = st.date_input("Date", value=date.today())
+    minutes = st.slider("Screen time minutes", 0, 600, 180, 5)
     minutes = st.number_input("Screen time minutes", min_value=0, max_value=2000, value=0, step=5)
 
-    if st.button("Save day"):
+    if st.button("Save day", type="primary"):
         upsert_day(gc, SHEET_ID, WORKSHEET_NAME, day, int(minutes), source="manual")
         st.success("Saved ✅")
         df = load_data(gc, SHEET_ID, WORKSHEET_NAME)
@@ -136,17 +126,23 @@ with left:
     min_date = min(df["date"])
     max_date = max(df["date"])
 
-    start, end = st.date_input(
+    date_range = st.date_input(
         "Select range",
         value=(min_date, max_date),
         min_value=min_date,
         max_value=max_date,
     )
 
+    if isinstance(date_range, tuple) and len(date_range) == 2:
+        start, end = date_range
+    else:
+        st.info("Select an end date to complete the range")
+        st.stop()
+        
     st.divider()
     st.subheader("🎯 Goal")
-    goal = st.number_input("Daily goal (minutes)", min_value=1, max_value=2000, value=180, step=5)
-    streak_threshold = st.number_input("Streak threshold (minutes)", min_value=1, max_value=2000, value=180, step=5)
+    goal = st.number_input("Daily goal (minutes)", min_value=1, max_value=2000, value=10, step=5)
+    streak_threshold = st.number_input("Streak threshold (minutes)", min_value=1, max_value=2000, value=10, step=5)
 
 
 with right:
@@ -170,13 +166,13 @@ with right:
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Avg (min/day)", f"{avg:.1f}")
-    c2.metric("Days ≤ goal", f"{below}")
-    c3.metric("Days > goal", f"{above}")
+    c2.metric("Days meeting goal", f"{below}")
+    c3.metric("Days over goal", f"{above}")
     c4.metric("Missing days", f"{missing_days}")
 
     # Streak
     streak = current_streak_under_threshold(daily, int(streak_threshold))
-    st.info(f"Current streak under {streak_threshold} min: **{streak} day(s)**")
+    st.info(f"Current streak under {streak_threshold} minutes: **{streak} day(s)**")
 
     st.write("")
     # Line chart: fill missing as 0 for charting, but keep missing flag for table
@@ -185,30 +181,31 @@ with right:
 
     st.divider()
 
-    # Heatmap (weekday)
-    st.subheader("🗓️ Weekday heatmap (average minutes)")
-    heat = weekday_heatmap_data(daily)
+    col_hm, col_tbl = st.columns([1, 1.3], gap="medium")
 
-    # Streamlit doesn't have native heatmap; simplest is a styled dataframe
-    # Values shown + background gradient.
-    st.dataframe(
-        heat.style.format({"avg_minutes": "{:.0f}"})
-            .background_gradient(axis=0),
-        use_container_width=True
-    )
+    with col_hm:
+        st.subheader("🗓️ Weekday heatmap")
+        heat = weekday_heatmap_data(daily)
 
-    st.divider()
-    st.subheader("🗂️ Data (missing days highlighted)")
+        st.dataframe(
+            heat.style
+                .format({"avg_minutes": "{:.0f}"})
+                .background_gradient(cmap="RdYlGn_r"),
+            use_container_width=True
+        )
 
-    display = daily.copy()
-    display["date"] = pd.to_datetime(display["date"]).dt.strftime("%Y-%m-%d")
-    display["minutes"] = display["minutes"].astype("Int64")
+    with col_tbl:
+        st.subheader("🗂️ Data (missing days)")
 
-    def highlight_missing(row):
-        return ["background-color: #ffe8e8" if row["missing"] else "" for _ in row]
+        display = daily.copy()
+        display["date"] = pd.to_datetime(display["date"]).dt.strftime("%Y-%m-%d")
+        display["minutes"] = display["minutes"].astype("Int64")
 
-    st.dataframe(
-        display[["date", "minutes", "missing"]]
-            .style.apply(highlight_missing, axis=1),
-        use_container_width=True
-    )
+        def highlight_missing(row):
+            return ["background-color: #ffe8e8" if row["missing"] else "" for _ in row]
+
+        st.dataframe(
+            display[["date", "minutes", "missing"]]
+                .style.apply(highlight_missing, axis=1),
+            use_container_width=True
+        )
