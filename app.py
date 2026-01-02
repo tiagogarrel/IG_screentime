@@ -124,31 +124,22 @@ with left:
         st.info("No data yet.")
         st.stop()
 
-    min_date = date.today() - timedelta(days=30)
-    max_date = date.today()
+    min_date = min(df["date"])
+    max_date = max(df["date"])
 
-    # persistent selected range
-    if "selected_range" not in st.session_state:
-        st.session_state["selected_range"] = (
-            date.today() - timedelta(days=7),
-            date.today()
-        )
-
-    picked = st.date_input(
+    date_range = st.date_input(
         "Select range",
-        value=st.session_state["selected_range"],
+        value=(min_date, max_date),
         min_value=min_date,
         max_value=max_date,
     )
 
-    # when only one date is selected, keep last valid range
-    if isinstance(picked, tuple) and len(picked) == 2:
-        st.session_state["selected_range"] = picked
+    if isinstance(date_range, tuple) and len(date_range) == 2:
+        start, end = date_range
     else:
-        st.info("Select an end date to complete the range.")
+        st.info("Select an end date to complete the range")
         st.stop()
-                
-    start, end = st.session_state["selected_range"]
+
     
     st.divider()
     st.subheader("🎯 Goal")
