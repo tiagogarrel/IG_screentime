@@ -123,8 +123,8 @@ with left:
         st.info("No data yet.")
         st.stop()
 
-    min_date = min(df["date"])
-    max_date = max(df["date"])
+    min_date = date.today()
+    max_date = date.today()-7
 
     date_range = st.date_input(
         "Select range",
@@ -141,8 +141,8 @@ with left:
         
     st.divider()
     st.subheader("🎯 Goal")
-    goal = st.number_input("Daily goal (minutes)", min_value=1, max_value=2000, value=10, step=5)
-    streak_threshold = st.number_input("Streak threshold (minutes)", min_value=1, max_value=2000, value=10, step=5)
+    goal = st.number_input("Daily goal (minutes)", min_value=1, max_value=2000, value=15, step=5)
+    streak_threshold = st.number_input("Streak threshold (minutes)", min_value=1, max_value=2000, value=15, step=5)
 
 
 with right:
@@ -190,7 +190,7 @@ with right:
         st.dataframe(
             heat.style
                 .format({"avg_minutes": "{:.0f}"})
-                .background_gradient(cmap="RdYlGn_r"),
+                .background_gradient(cmap="BrBG_r", vmin=0, vmax=200),
             use_container_width=True
         )
 
@@ -202,7 +202,7 @@ with right:
         display["minutes"] = display["minutes"].astype("Int64")
 
         def highlight_missing(row):
-            return ["background-color: #ffe8e8" if row["missing"] else "" for _ in row]
+            return ["background-color: #3a2f00" if row["missing"] else "" for _ in row]
 
         st.dataframe(
             display[["date", "minutes", "missing"]]
