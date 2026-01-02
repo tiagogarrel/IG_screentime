@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import date
 import gspread
 from google.oauth2.service_account import Credentials
+from datetime import timedelta
 
 from sheets import load_data, upsert_day
 
@@ -109,7 +110,7 @@ with left:
 
     day = st.date_input("Date", value=date.today())
     minutes = st.slider("Screen time minutes", 0, 600, 180, 5)
-    minutes = st.number_input("Screen time minutes", min_value=0, max_value=2000, value=0, step=5)
+    #minutes = st.number_input("Screen time minutes", min_value=0, max_value=2000, value=0, step=5)
 
     if st.button("Save day", type="primary"):
         upsert_day(gc, SHEET_ID, WORKSHEET_NAME, day, int(minutes), source="manual")
@@ -124,7 +125,7 @@ with left:
         st.stop()
 
     min_date = date.today()
-    max_date = date.today()-7
+    max_date = date.today() - timedelta(days=7)
 
     date_range = st.date_input(
         "Select range",
