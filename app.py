@@ -4,7 +4,7 @@ from datetime import date
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import timedelta
-
+from matplotlib.colors import LinearSegmentedColormap
 from sheets import load_data, upsert_day
 
 # ----------------------------
@@ -190,11 +190,13 @@ with right:
         st.subheader("🗓️ Weekday heatmap")
         heat = weekday_heatmap_data(daily)
 
+        soft_green_red = LinearSegmentedColormap.from_list("soft_green_red",[
+        "#1cca2a",  "#a1e67a", "#b14f4f",])
         
         st.dataframe(
             heat.style
                 .format({"avg_minutes": "{:.0f}"})
-                .background_gradient(cmap="PiYG_r"), #
+                .background_gradient(cmap=soft_green_red), #
             use_container_width=True
         )
 
