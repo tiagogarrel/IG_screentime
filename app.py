@@ -127,21 +127,29 @@ with left:
     min_date = date.today() - timedelta(days=30)
     max_date = date.today()
 
-    if "date_range" not in st.session_state:
-        st.session_state.date_range = (
+    # persistent selected range
+    if "selected_range" not in st.session_state:
+        st.session_state["selected_range"] = (
             date.today() - timedelta(days=7),
             date.today()
         )
 
-    date_range = st.date_input(
+    picked = st.date_input(
         "Select range",
+        value=st.session_state["selected_range"],
         min_value=min_date,
         max_value=max_date,
-        key="date_range",
     )
 
-    start, end = date_range
+    # when only one date is selected, keep last valid range
+    if isinstance(picked, tuple) and len(picked) == 2:
+        st.session_state["selected_range"] = picked
+    else:
+        st.info("Select an end date to complete the range.")
+        st.stop()
                 
+    start, end = st.session_state["selected_range"]
+    
     st.divider()
     st.subheader("🎯 Goal")
     goal = st.number_input("Daily goal (minutes)", min_value=1, max_value=2000, value=15, step=5)
