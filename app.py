@@ -94,7 +94,7 @@ def weekday_heatmap_data(daily: pd.DataFrame) -> pd.DataFrame:
 # ----------------------------
 # UI
 # ----------------------------
-st.title("📱 Screen Time Tracker")
+st.title("Screen Time Tracker")
 
 if not SHEET_ID:
     st.error("Missing SHEET_ID in secrets.")
@@ -109,7 +109,7 @@ with left:
     st.subheader("➕ Add / update a day")
 
     day = st.date_input("Date", value=date.today())
-    minutes = st.slider("Screen time minutes", 0, 240, 180, 5)
+    minutes = st.slider("Screen time minutes", 0, 120, 180, 1)
     #minutes = st.number_input("Screen time minutes", min_value=0, max_value=2000, value=0, step=5)
 
     if st.button("Save day", type="primary"):
@@ -171,7 +171,7 @@ with right:
     c1.metric("Avg (min/day)", f"{avg:.1f}")
     c2.metric("Days meeting goal", f"{below}")
     c3.metric("Days over goal", f"{above}")
-    c4.metric("Missing days", f"{missing_days}")
+    c4.metric("Data missing", f"{missing_days}")
 
     # Streak
     streak = current_streak_under_threshold(daily, int(streak_threshold))
@@ -210,8 +210,11 @@ with right:
         def highlight_missing(row):
             return ["background-color: #2a2a2a" if row["missing"] else "" for _ in row]
 
+        only_missing = display[display['missing'] == True ]
+        
         st.dataframe(
-            display[["date", "minutes", "missing"]]
+            only_missing[["date", "minutes", "missing"]]
                 .style.apply(highlight_missing, axis=1),
             use_container_width=True
         )
+
